@@ -62,7 +62,7 @@ class Device:
 class Client:
 	dev=None
 	def __init__(self,dev):
-		print "Client initialized"
+		print "Client initialized now"
 	def sendPicture(self,imgfile):
 		print "Send imgfile to app":
 	def getResponse(self):
