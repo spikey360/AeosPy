@@ -21,3 +21,18 @@ class Message:
 		self.message=x
 
 
+class Device:
+	devnum=0
+	devaddr=None
+	name=""
+	sock=None
+	
+	def __init__(self):
+		print "Initializing"
+	
+	def getName(self):
+		return self.Name
+	
+	def establishConnection(self):
+		print "Establishing connection"
+	 
