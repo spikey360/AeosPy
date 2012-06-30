@@ -2,6 +2,7 @@ import wx
 import os
 
 class PicturePanel(wx.Panel):
+	bmp=None
 	def __init__(self,parent):
 		wx.Panel.__init__(self,parent,size=(600,300))
 		self.frame=parent
@@ -12,14 +13,20 @@ class PicturePanel(wx.Panel):
 		Add a picture to the background
 		"""
 		# yanked from ColourDB.py
+		
+		img=wx.Image(self.bmp)
+		bmp=img.Scale(600,300).ConvertToBitmap()
+		self.SetSize((bmp.GetWidth(),bmp.GetHeight()))
 		dc = None
 		if not dc:
 			dc = wx.ClientDC(self)
 			rect = self.GetUpdateRegion().GetBox()
 			dc.SetClippingRect(rect)
 		dc.Clear()
-		bmp = wx.Bitmap("/home/riju/Pictures/diwali.jpg")
+		
 		dc.DrawBitmap(bmp, 0, 0)
+	def setImage(self,bmp):
+		self.bmp=bmp
 
 
 class Viewer(wx.Frame):
@@ -29,6 +36,7 @@ class Viewer(wx.Frame):
 	prevButton=None
 	piclist=None
 	albumSize=0
+	curr=0
 	def __init__(self,title,winsize,folder):
 		
 		wx.Frame.__init__(self,None,title=title,size=winsize)
@@ -36,22 +44,37 @@ class Viewer(wx.Frame):
 		self.setAlbumFolder(folder)
 		dpanel=wx.Panel(self)
 		panel=wx.Panel(self)
-		picPanel=PicturePanel(self)
+		self.picPanel=PicturePanel(self)
 		dash=wx.BoxSizer(wx.HORIZONTAL)
 		nextButton=wx.Button(dpanel,label=">")
+		nextButton.Bind(wx.EVT_BUTTON,self.onNext)
 		prevButton=wx.Button(dpanel,label="<")
+		prevButton.Bind(wx.EVT_BUTTON,self.onPrev)
 		dpanel.SetSizer(dash)
 		dpanel.Layout()
 		dash.Add(prevButton,0,wx.LEFT)
 		dash.Add(nextButton,0,wx.RIGHT)
 		mainBox=wx.BoxSizer(wx.VERTICAL)
-		mainBox.Add(picPanel,0,wx.EXPAND)
+		mainBox.Add(self.picPanel,0,wx.EXPAND)
 		mainBox.Add(dpanel,0,wx.BOTTOM)
 		panel.SetSizer(mainBox)
 		panel.Layout()
-	def onClose(self,event)	:
+		
+		self.picPanel.setImage(self.piclist[self.curr])
+		
+		
+	def onClose(self,event):
 		self.Destroy()
-	
+	def onNext(self,event):
+		self.curr+=1
+		print self.curr
+		self.picPanel.setImage(self.piclist[self.curr])
+		self.picPanel.Refresh()
+	def onPrev(self,event):
+		self.curr-=1
+		print self.curr
+		self.picPanel.setImage(self.piclist[self.curr])
+		self.picPanel.Refresh()
 	def setAlbumFolder(self,x):
 		if os.access(x,os.R_OK)==False:
 			return
