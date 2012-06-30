@@ -15,7 +15,12 @@ class PicturePanel(wx.Panel):
 		# yanked from ColourDB.py
 		
 		img=wx.Image(self.bmp)
-		bmp=img.Scale(600,300).ConvertToBitmap()
+		iw=img.GetWidth()
+		ih=img.GetHeight()
+		ar=(iw+0.0)/(ih+0.0)
+		nh=300
+		nw=300*ar
+		bmp=img.Scale(nw,nh).ConvertToBitmap()
 		self.SetSize((bmp.GetWidth(),bmp.GetHeight()))
 		dc = None
 		if not dc:
@@ -90,7 +95,7 @@ class Viewer(wx.Frame):
 
 app=wx.App(redirect=False)
 
-view=Viewer(title="AeosPy Viewer",winsize=(500,400),folder="/home/riju/Pictures/")
+view=Viewer(title="AeosPy Viewer",winsize=(500,400),folder="/home/riju/Pictures/wallpaper/")
 view.Show()
 
 app.MainLoop()
