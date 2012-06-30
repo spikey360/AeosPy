@@ -1,6 +1,27 @@
 import wx
 import os
 
+class PicturePanel(wx.Panel):
+	def __init__(self,parent):
+		wx.Panel.__init__(self,parent,size=(600,300))
+		self.frame=parent
+		self.Bind(wx.EVT_PAINT,self.onPaint)
+		
+	def onPaint(self, evt):
+		"""
+		Add a picture to the background
+		"""
+		# yanked from ColourDB.py
+		dc = None
+		if not dc:
+			dc = wx.ClientDC(self)
+			rect = self.GetUpdateRegion().GetBox()
+			dc.SetClippingRect(rect)
+		dc.Clear()
+		bmp = wx.Bitmap("/home/riju/Pictures/diwali.jpg")
+		dc.DrawBitmap(bmp, 0, 0)
+
+
 class Viewer(wx.Frame):
 	picPanel=None
 	dash=None
@@ -13,21 +34,19 @@ class Viewer(wx.Frame):
 		wx.Frame.__init__(self,None,title=title,size=winsize)
 		self.Bind(wx.EVT_CLOSE,self.onClose)
 		self.setAlbumFolder(folder)
+		dpanel=wx.Panel(self)
 		panel=wx.Panel(self)
-		picPanel=wx.Panel(panel,size=(400,400))
+		picPanel=PicturePanel(self)
 		dash=wx.BoxSizer(wx.HORIZONTAL)
-		nextButton=wx.Button(panel,label=">")
-		prevButton=wx.Button(panel,label="<")
+		nextButton=wx.Button(dpanel,label=">")
+		prevButton=wx.Button(dpanel,label="<")
+		dpanel.SetSizer(dash)
+		dpanel.Layout()
 		dash.Add(prevButton,0,wx.LEFT)
 		dash.Add(nextButton,0,wx.RIGHT)
 		mainBox=wx.BoxSizer(wx.VERTICAL)
 		mainBox.Add(picPanel,0,wx.EXPAND)
-		mainBox.Add(dash,0,wx.BOTTOM)
-		bimg=wx.Image(self.piclist[0]).ConvertToBitmap()
-		#picPanel.bitmap1=wx.StaticBitmap(self,-1,bimg,(0,0))
-		dc=wx.WindowDC(picPanel)
-		dc.Clear()
-		dc.DrawBitmap(bimg, 0, 0)
+		mainBox.Add(dpanel,0,wx.BOTTOM)
 		panel.SetSizer(mainBox)
 		panel.Layout()
 	def onClose(self,event)	:
@@ -45,8 +64,6 @@ class Viewer(wx.Frame):
 			if y.endswith(".jpg") or y.endswith(".gif") or y.endswith(".png"):
 				self.piclist[self.albumSize]=x+y
 				self.albumSize=self.albumSize+1
-
-
 
 app=wx.App(redirect=False)
 
