@@ -44,7 +44,7 @@ class Viewer(wx.Frame):
 	curr=0
 	def __init__(self,title,winsize,folder):
 		
-		wx.Frame.__init__(self,None,title=title,size=winsize)
+		wx.Frame.__init__(self,None,title=title+" "+folder,size=winsize)
 		self.Bind(wx.EVT_CLOSE,self.onClose)
 		self.setAlbumFolder(folder)
 		dpanel=wx.Panel(self)
