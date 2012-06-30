@@ -71,13 +71,15 @@ class Viewer(wx.Frame):
 	def onClose(self,event):
 		self.Destroy()
 	def onNext(self,event):
-		self.curr+=1
-		print self.curr
+		if self.curr<(self.albumSize-1):
+			self.curr+=1
+		
 		self.picPanel.setImage(self.piclist[self.curr])
 		self.picPanel.Refresh()
 	def onPrev(self,event):
-		self.curr-=1
-		print self.curr
+		if self.curr>=1:
+			self.curr-=1
+		
 		self.picPanel.setImage(self.piclist[self.curr])
 		self.picPanel.Refresh()
 	def setAlbumFolder(self,x):
