@@ -50,9 +50,9 @@ class Server:
 		if BTRMDEBUG:
 			print "Closed client socket"
 	
-	def getDock():
-		global connd
-		if state==connd:
+	def getDock(self):
+		global connd, BTRMDEBUG
+		if self.state==connd:
 			if BTRMDEBUG:
 				print "Creating remote dock"
 			return RemoteDock(self)
@@ -62,19 +62,22 @@ class Server:
 	#here's where the real fun begins
 	
 	def writeToRemote(self,msg):
-		remotesock.send(msg)
+		self.remotesock.send(msg)
 	
-	def readFromRemote(self):
-		return remotesock.recv(1024) #1KB read
+	def readFromRemote(self,size=512):
+		return self.remotesock.recv(size) #1KB read
 	
 	def handshake(self):
 		global connd
 		if self.state!=connd:
 			return None #should ideally throw an exception
 		#challenge with a nonce
-		nonce="Nonce"
-		writeToRemote(nonce)
-		back=readFromRemote()
+		nonce="Nonce\0"
+		self.writeToRemote(nonce)
+		if BTRMDEBUG:
+			print "Nonce thrown"
+		back=self.readFromRemote()
+		print "Nonce received",back
 		if nonce!=back:
 			return 0
 		return 1 #handshake done
@@ -84,15 +87,30 @@ class RemoteDock:
 	def __init__(self,server):
 		self.server=server
 	
-	def sendOperation(self,oplist):
+	def sendOperationList(self,protocol,oplist):
 		msg=""
+		w=0
 		#oplist is a 3-tuple (image,title,opcode)
-		(image,title,opcode)=oplist
-		msg="[i]"+image+"[t]"+title+"[o]"+opcode+"[e]\0" #[e] signifies end of tuple
-		server.writeToRemote(msg)
+		
+		#msg="[i]"+image+"[t]"+title+"[o]"+opcode+"[e]\0" #[e] signifies end of tuple
+		msg=""
+		#self.server.writeToRemote(protocol)
+		msg=msg+protocol
+		for k in oplist:
+			(title,opcode)=k
+			msg=msg+";"+title+":"+opcode
+		#self.server.writeToRemote("\0")
+		msg=msg+";\0"
+		self.server.writeToRemote(msg)
+	
+	def sendPictureDetails(self,name,size):
+		msg="p;"+name+";"+size+"\0"
+		self.server.writeToRemote(msg)
 	
 	def waitForOpcode():
-		server.writeToRemote("[w]\0") #[w] tells remote that server waiting for response
-		msg=server.readFromRemote()
+		self.server.writeToRemote("[w]\0") #[w] tells remote that server waiting for response
+		msg=self.server.readFromRemote()
 		#expected format "[r]<opcode>"
-		return msg[3:]
+		return msg
+		
+
