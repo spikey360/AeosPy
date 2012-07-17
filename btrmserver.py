@@ -62,7 +62,7 @@ class Server:
 	#here's where the real fun begins
 	
 	def writeToRemote(self,msg):
-		self.remotesock.send(msg)
+		self.remotesock.sendall(msg)
 	
 	def readFromRemote(self,size=512):
 		return self.remotesock.recv(size) #1KB read
@@ -81,74 +81,17 @@ class Server:
 		if nonce!=back:
 			return 0
 		return 1 #handshake done
-
-class RemoteDock:
-	server=None
-	oplist=None
-	controllable=None
-	def __init__(self,server):
-		self.server=server
-	
-	def sendOperationList(self,oplist,protocol="l"):
-		msg=""
-		w=0
-		#oplist is a 3-tuple (image,title,opcode)
-		
-		#msg="[i]"+image+"[t]"+title+"[o]"+opcode+"[e]\0" #[e] signifies end of tuple
-		msg=""
-		#self.server.writeToRemote(protocol)
-		msg=msg+protocol
-		for k in oplist:
-			(title,opcode)=(oplist[k],k)
-			msg=msg+";"+title+":"+opcode
-		#self.server.writeToRemote("\0")
-		msg=msg+";\0"
-		self.server.writeToRemote(msg)
-	
-	def sendPictureDetails(self,name,size):
-		msg="p;"+name+";"+size+"\0"
-		self.server.writeToRemote(msg)
-	
-	def readProtocolString():
-		###########
-		ps=self.server.readFromRemote()
-		p=ps[:1] #the type of query
-		if p=="d":
-			op=int(ps[2:])
-			(name,size)=self.oplist.getDetails(op)
-			self
-			#write a protocol string
-			return
-		if p=="f":
-			op=int(ps[2:])
-			dat=self.oplist.getThumb(op)
-			#write thumbnail to remote
-			return
-		if p=="x":
-			op=int(ps[2:])
-			self.controllable.opControl(op)
-			#write an acknowledgement
-			return
-		if p=="q":
-			#quit, release resources and wait for the next connection
-			return
-		#d for details reply with p;<name>;<size in B>
-		#f for fetching picture, to implement later
-		#x for executing opcode coming with it
-		
-		###########
-		self.server.writeToRemote("[w]\0") #[w] tells remote that server waiting for response
-		msg=self.server.readFromRemote()
-		#expected format "[r]<opcode>"
-		return msg
-
+################################################
 class OperatorStore:
-	oplist={}
-	detlist={}
-	thumblist={}
+	oplist=None
+	detlist=None
+	thumblist=None
 	
-	def __init__(self,startdir):
+	def __init__(self):
 		#self.generateDetails(startdir)
+		self.oplist={}
+		self.detlist={}
+		self.thumblist={}
 	
 	def getOplist(self):
 		return self.oplist
@@ -166,3 +109,83 @@ class OperatorStore:
 		#<details> is a dictionary
 		(det,opcode)=details
 		self.detlist[opcode]=det
+################################################
+
+class RemoteDock:
+	server=None
+	oplist=None
+	controllable=None
+	def __init__(self,server):
+		self.server=server
+		self.oplist=OperatorStore()
+		
+	def setControllable(self,ct):
+		self.controllable=ct
+	
+	def sendOperationList(self,oplist,protocol="l"):
+		msg=""
+		w=0
+		#oplist is a dictionary oplist[opcode]=parameter
+				
+		msg=""
+		#self.server.writeToRemote(protocol)
+		msg=msg+protocol
+		for k in oplist:
+			(title,opcode)=(oplist[k],k)
+			msg=msg+";"+title+":"+opcode
+		#self.server.writeToRemote("\0")
+		msg=msg+";\0"
+		self.server.writeToRemote(msg)
+		if BTRMDEBUG:
+			print ">"+msg
+	
+	def sendPictureDetails(self,name,size):
+		msg="p;"+name+";"+size+"\0"
+		self.server.writeToRemote(msg)
+	
+	def sendAcknowledgement(self,acktype="x",opc="0"):
+		global BTRMDEBUG
+		msg="ack"+acktype+";"+opc+"\0"
+		self.server.writeToRemote(msg)
+		if BTRMDEBUG:
+			print ">"+msg
+
+	def readProtocolString(self):
+		global BTRMDEBUG
+		###########
+		ps=self.server.readFromRemote()
+		if BTRMDEBUG:
+			print "<"+ps
+		p=ps[:1] #the type of query
+		if p=="d":
+			op=ps[2:]
+			det=self.oplist.getDetail(op)
+			self.sendOperationList(det,protocol="p")
+			#write a protocol string
+			return True
+		if p=="f":
+			op=ps[2:]
+			#dat=self.oplist.getThumb(op)
+			#write thumbnail to remote
+			return True
+		if p=="x":
+			op=ps[2:]
+			if BTRMDEBUG:
+				print "Changing picture"
+			self.controllable.opControl(int(op))
+			#write an acknowledgement
+			self.sendAcknowledgement(opc=op)
+			return True
+		if p=="q":
+			#quit, release resources and wait for the next connection
+			self.sendAcknowledgement(acktype="q")
+			return False
+		#d for details reply with p;<name>;<size in B>
+		#f for fetching picture, to implement later
+		#x for executing opcode coming with it
+		
+		###########
+		self.server.writeToRemote("[w]\0") #[w] tells remote that server waiting for response
+		msg=self.server.readFromRemote()
+		#expected format "[r]<opcode>"
+		return msg
