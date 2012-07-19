@@ -99,6 +99,9 @@ class OperatorStore:
 	def getDetail(self,opcode):
 		return self.detlist[opcode]
 	
+	def getThumb(self,opcode):
+		return self.thumblist[opcode]
+	
 	def addOperation(self, operation):
 		#operation is a tuple of format (<operation>,<opcode>)
 		(opname,opcode)=operation
@@ -109,6 +112,11 @@ class OperatorStore:
 		#<details> is a dictionary
 		(det,opcode)=details
 		self.detlist[opcode]=det
+		
+	def addThumb(self,thumbtup):
+		#thumbtup is a tuple of format (<thumbnail data>,<opcode>)
+		(thdata,opcode)=thumbtup
+		self.thumblist[opcode]=thdata
 ################################################
 
 class RemoteDock:
@@ -139,10 +147,13 @@ class RemoteDock:
 		if BTRMDEBUG:
 			print ">"+msg
 	
-	def sendPictureDetails(self,name,size):
-		msg="p;"+name+";"+size+"\0"
+	def sendPictureMetadata(self,name,size):
+		global BTRMDEBUG
+		msg="n;"+name+";"+size+";\0"
 		self.server.writeToRemote(msg)
-	
+		if BTRMDEBUG:
+			print ">"+msg
+
 	def sendAcknowledgement(self,acktype="x",opc="0"):
 		global BTRMDEBUG
 		msg="ack"+acktype+";"+opc+"\0"
@@ -165,8 +176,10 @@ class RemoteDock:
 			return True
 		if p=="f":
 			op=ps[2:]
-			#dat=self.oplist.getThumb(op)
-			#write thumbnail to remote
+			dat=self.oplist.getThumb(op)
+			self.server.writeToRemote(dat)
+			if BTRMDEBUG:
+				print "Picture bytes written"
 			return True
 		if p=="x":
 			op=ps[2:]
@@ -175,6 +188,13 @@ class RemoteDock:
 			self.controllable.opControl(int(op))
 			#write an acknowledgement
 			self.sendAcknowledgement(opc=op)
+			return True
+		if p=="m":
+			op=ps[2]
+			if BTRMDEBUG:
+				print "Sending metadata"
+			dat=self.oplist.getThumb(op)
+			self.sendPictureMetadata("Preview",str(len(dat)))
 			return True
 		if p=="q":
 			#quit, release resources and wait for the next connection
