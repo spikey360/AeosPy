@@ -3,6 +3,8 @@ import os
 import view
 import wx
 import thread
+import sys
+import tempfile
 
 cc=0 #command count
 btrmserver.BTRMDEBUG=1 #debug flag
@@ -20,6 +22,9 @@ oplist={"-1":"Default"}
 detlist={}
 ##set operation list here
 dirpath="/home/riju/Pictures/wallpaper/"
+if len(sys.argv)>1:
+	dirpath=sys.argv[1]
+
 if os.access(dirpath,os.R_OK)==True:
 	z=os.listdir(dirpath)
 	opc=1
@@ -31,6 +36,18 @@ if os.access(dirpath,os.R_OK)==True:
 			rd.oplist.addOperation((y[:16],str(opc)))
 			#add detail
 			rd.oplist.addDetails(({dirpath+y:"Location"},str(opc)))
+			#add thumb
+			thumb=wx.Image(dirpath+y).Scale(64,64)
+			data=None
+			tempf=tempfile.NamedTemporaryFile()
+			try:
+				thumb.SaveFile(tempf.name,wx.BITMAP_TYPE_PNG)
+				tempf.seek(0)
+				data=tempf.read()
+				
+			finally:
+				tempf.close()
+			rd.oplist.addThumb((data,str(opc)))
 			opc+=1
 else:
 	print "Unable to load file list from folder"
@@ -38,7 +55,7 @@ rd.sendOperationList(rd.oplist.getOplist())
 ##SETUP VIEWER#
 app=wx.App(redirect=False)
 
-rd.controllable=view.Viewer(title="AeosPy Viewer",winsize=(500,400),folder=dirpath)
+rd.controllable=view.Viewer(title="AeosPy Viewer",winsize=(900,650),folder=dirpath)
 rd.controllable.Show()
 
 
