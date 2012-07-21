@@ -35,9 +35,10 @@ if os.access(dirpath,os.R_OK)==True:
 			#add operation
 			rd.oplist.addOperation((y[:16],str(opc)))
 			#add detail
-			rd.oplist.addDetails(({dirpath+y:"Location"},str(opc)))
+			w,h=wx.Image(dirpath+y).GetSize()
+			rd.oplist.addDetails(({dirpath+y:"Location",str(w)+"x"+str(h):"Size"},str(opc)))
 			#add thumb
-			thumb=wx.Image(dirpath+y).Scale(64,64)
+			"""thumb=wx.Image(dirpath+y).Scale(64,64)
 			data=None
 			tempf=tempfile.NamedTemporaryFile()
 			try:
@@ -47,15 +48,29 @@ if os.access(dirpath,os.R_OK)==True:
 				
 			finally:
 				tempf.close()
-			rd.oplist.addThumb((data,str(opc)))
+			rd.oplist.addThumb((data,str(opc)))"""
 			opc+=1
 else:
 	print "Unable to load file list from folder"
-rd.sendOperationList(rd.oplist.getOplist())
-##SETUP VIEWER#
-app=wx.App(redirect=False)
 
+app=wx.App(redirect=False)	
 rd.controllable=view.Viewer(title="AeosPy Viewer",winsize=(900,650),folder=dirpath)
+
+##NOW ADD SOME CONTROLS
+for m in rd.controllable.conlist:
+	(code,nf)=(str(m),rd.controllable.conlist[m])
+	(name,func)=nf
+	rd.oplist.addControl((name,code))
+##START SENDING OPLIST##
+rd.sendOperationList(rd.oplist.getOplist())
+rd.readProtocolString()
+#also send control list
+rd.sendOperationList(rd.oplist.getConlist(),protocol="c")
+rd.readProtocolString()
+##SETUP VIEWER#
+
+
+
 rd.controllable.Show()
 
 
@@ -72,7 +87,7 @@ def appLoop():
 	global app
 	app.MainLoop()
 
-print "Strating thread"
+print "Starting thread"
 thread.start_new_thread(appLoop,())
 	
 remoteLoop()
