@@ -62,10 +62,16 @@ class Server:
 	#here's where the real fun begins
 	
 	def writeToRemote(self,msg):
-		self.remotesock.sendall(msg)
+		try:
+			self.remotesock.sendall(msg)
+		except:
+			self.closeServer()
 	
 	def readFromRemote(self,size=512):
-		return self.remotesock.recv(size) #1KB read
+		try:
+			return self.remotesock.recv(size) #1KB read
+		except:
+			self.closeServer()
 	
 	def handshake(self):
 		global connd
@@ -86,12 +92,14 @@ class OperatorStore:
 	oplist=None
 	detlist=None
 	thumblist=None
+	conlist=None
 	
 	def __init__(self):
 		#self.generateDetails(startdir)
 		self.oplist={}
 		self.detlist={}
 		self.thumblist={}
+		self.conlist={}
 	
 	def getOplist(self):
 		return self.oplist
@@ -101,6 +109,9 @@ class OperatorStore:
 	
 	def getThumb(self,opcode):
 		return self.thumblist[opcode]
+	
+	def getConlist(self):
+		return self.conlist;
 	
 	def addOperation(self, operation):
 		#operation is a tuple of format (<operation>,<opcode>)
@@ -117,6 +128,10 @@ class OperatorStore:
 		#thumbtup is a tuple of format (<thumbnail data>,<opcode>)
 		(thdata,opcode)=thumbtup
 		self.thumblist[opcode]=thdata
+	
+	def addControl(self,control):
+		(condata,concode)=control
+		self.conlist[concode]=condata
 ################################################
 
 class RemoteDock:
@@ -196,6 +211,17 @@ class RemoteDock:
 			dat=self.oplist.getThumb(op)
 			self.sendPictureMetadata("Preview",str(len(dat)))
 			return True
+		if p=="c":
+			op=ps[2]
+			if BTRMDEBUG:
+				print "Executing control"
+			#do it
+			self.controllable.conControl(int(op))
+			self.sendAcknowledgement(acktype="c",opc=op)
+			return True
+		if p=="a":
+			#acknowledgement
+			return True
 		if p=="q":
 			#quit, release resources and wait for the next connection
 			self.sendAcknowledgement(acktype="q")
@@ -205,7 +231,4 @@ class RemoteDock:
 		#x for executing opcode coming with it
 		
 		###########
-		self.server.writeToRemote("[w]\0") #[w] tells remote that server waiting for response
-		msg=self.server.readFromRemote()
-		#expected format "[r]<opcode>"
-		return msg
+		return None
