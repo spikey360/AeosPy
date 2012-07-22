@@ -4,6 +4,8 @@ import os
 class PicturePanel(wx.Panel):
 	bmp=None
 	presentZoomLevel=1.00
+	#tuple describing point from where viewport has its origin
+	viewpoint=(0,0)
 	def __init__(self,parent):
 		wx.Panel.__init__(self,parent,size=(890,500))
 		self.frame=parent
@@ -33,8 +35,16 @@ class PicturePanel(wx.Panel):
 		if nh>h:
 			nh=h
 			#nw=h/ar
-		
-		bmp=img.Scale(nw,nh).ConvertToBitmap()
+		sw=iw*self.presentZoomLevel
+		sh=ih*self.presentZoomLevel
+		(sx,sy)=self.viewpoint
+		#check ranges before painting
+		if (sx+sw)>iw or (sy+sh)>ih:
+			self.vpReset()
+			sw=iw*self.presentZoomLevel
+			sh=ih*self.presentZoomLevel
+			(sx,sy)=self.viewpoint
+		bmp=img.GetSubImage((sx,sy,sw,sh)).Scale(nw,nh).ConvertToBitmap()
 		self.SetSize((bmp.GetWidth(),bmp.GetHeight()))
 		presentZoomLevel=1
 		dc.Clear()
@@ -51,34 +61,49 @@ class PicturePanel(wx.Panel):
 		else:
 			if self.presentZoomLevel<1:
 				self.presentZoomLevel+=0.1
-		dc = None
-		if not dc:
-			dc = wx.ClientDC(self)
-			rect = self.GetUpdateRegion().GetBox()
-			dc.SetClippingRect(rect)
-		##now draw image
+				#need to calculate viewpoint again
+	
+	def setDirection(self,direction="u"):
+		#(u)p, (d)own, (l)eft, (r)ight are the directions available
+		step=50
 		img=wx.Image(self.bmp)
 		iw=img.GetWidth()
 		ih=img.GetHeight()
-		nw=iw
-		nh=ih
-		ar=(iw+0.0)/(ih+0.0)
-		w,h=dc.GetSize()
-		if iw>=w:
-			nw=w
-			nh=w/ar
-		if nh>h:
-			nh=h
-			#nw=h/ar
-		sw=iw*self.presentZoomLevel
-		sh=ih*self.presentZoomLevel
-		
-		bmp=img.GetSubImage((0,0,sw,sh)).Scale(nw,nh).ConvertToBitmap()
-		self.SetSize((bmp.GetWidth(),bmp.GetHeight()))
-		
-		dc.Clear()
-		dc.DrawBitmap(bmp, w/2-nw/2, h/2-nh/2)
-
+		(vx,vy)=self.viewpoint
+		vw=self.presentZoomLevel*iw
+		vh=self.presentZoomLevel*ih
+		#viewpoint is dependent upon presentZoomLevel
+		if direction=="u":
+			if (vy-step)>=0:
+				vy-=step
+				
+			else:
+				vy=0
+		elif direction=="d":
+			if (vy+step+vh)<=ih:
+				vy+=step
+				
+			else:
+				u=ih-vh
+				vy=u
+		elif direction=="l":
+			if (vx-step)>=0:
+				vx-=step
+				
+			else:
+				vx=0
+		elif direction=="r":
+			if (vx+step+vw)<=iw:
+				vx+=step
+			else:
+				u=iw-vw
+				vx=u
+		self.viewpoint=(vx,vy)
+		#print vx,vy,vw,vh
+	
+	def vpReset(self):
+		self.presentZoomLevel=1
+		self.viewpoint=(0,0)
 
 class Viewer(wx.Frame):
 	picPanel=None
@@ -128,19 +153,23 @@ class Viewer(wx.Frame):
 		self.conlist[1]=("Fullscreen",self.toggleFullScreen)
 		self.conlist[2]=("Zoom",self.zoom)
 		self.conlist[3]=("Mooz",self.mooz)
+		self.conlist[4]=("-Up",self.goUp)
+		self.conlist[5]=("-Down",self.goDown)
+		self.conlist[6]=("-Left",self.goLeft)
+		self.conlist[7]=("-Right",self.goRight)
 		
 	def onClose(self,event):
 		self.Destroy()
 	def onNext(self,event):
 		if self.curr<(self.albumSize-1):
 			self.curr+=1
-		
+		self.picPanel.vpReset()
 		self.picPanel.setImage(self.piclist[self.curr])
 		self.picPanel.Refresh()
 	def onPrev(self,event):
 		if self.curr>=1:
 			self.curr-=1
-		
+		self.picPanel.vpReset()
 		self.picPanel.setImage(self.piclist[self.curr])
 		self.picPanel.Refresh()
 	
@@ -152,6 +181,15 @@ class Viewer(wx.Frame):
 	
 	def onMoozed(self,event):
 		self.mooz()
+		
+	def onGoUp(self,event):
+		self.goUp()
+	def onGoDown(self,event):
+		self.goDown()
+	def onGoLeft(self,event):
+		self.goLeft()
+	def onGoRight(self,event):
+		self.goRight()
 	########################################################
 	def toggleFullScreen(self):
 		if self.isFs==False:
@@ -164,14 +202,30 @@ class Viewer(wx.Frame):
 	
 	def zoom(self):
 		self.picPanel.showZoomedImage()
+		self.picPanel.Refresh()
 	
 	def mooz(self):
 		self.picPanel.showZoomedImage(zoom=False)
+		self.picPanel.Refresh()
+		
+	def goUp(self):
+		self.picPanel.setDirection(direction="u")
+		self.picPanel.Refresh()
+	def goDown(self):
+		self.picPanel.setDirection(direction="d")
+		self.picPanel.Refresh()
+	def goLeft(self):
+		self.picPanel.setDirection(direction="l")
+		self.picPanel.Refresh()
+	def goRight(self):
+		self.picPanel.setDirection(direction="r")
+		self.picPanel.Refresh()
 	#########################################################
 	def opControl(self,op):
 		#op an integer
 		self.curr=op-1
 		#change self.curr accordingly
+		self.picPanel.vpReset()
 		self.picPanel.setImage(self.piclist[self.curr])
 		self.picPanel.Refresh()
 		

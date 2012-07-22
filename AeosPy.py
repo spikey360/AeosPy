@@ -55,7 +55,6 @@ else:
 
 app=wx.App(redirect=False)	
 rd.controllable=view.Viewer(title="AeosPy Viewer",winsize=(900,650),folder=dirpath)
-
 ##NOW ADD SOME CONTROLS
 for m in rd.controllable.conlist:
 	(code,nf)=(str(m),rd.controllable.conlist[m])
