@@ -84,7 +84,7 @@ class PicturePanel(wx.Panel):
 				vy+=step
 				
 			else:
-				u=ih-vh
+				u=ih-vh-1
 				vy=u
 		elif direction=="l":
 			if (vx-step)>=0:
@@ -96,7 +96,7 @@ class PicturePanel(wx.Panel):
 			if (vx+step+vw)<=iw:
 				vx+=step
 			else:
-				u=iw-vw
+				u=iw-vw-1
 				vx=u
 		self.viewpoint=(vx,vy)
 		#print vx,vy,vw,vh
