@@ -242,6 +242,7 @@ class Viewer(wx.Frame):
 		self.piclist={}
 		self.albumSize=0
 		for y in z:
+			y=y.lower()
 			if y.endswith(".jpg") or y.endswith(".gif") or y.endswith(".png"):
 				self.piclist[self.albumSize]=x+y
 				self.albumSize=self.albumSize+1

@@ -31,6 +31,7 @@ if os.access(dirpath,os.R_OK)==True:
 	if dirpath.endswith("/")==False:
 		dirpath=dirpath+"/"
 	for y in z:
+		y=y.lower()
 		if y.endswith(".jpg") or y.endswith(".gif") or y.endswith(".png"):
 			#add operation
 			rd.oplist.addOperation((y[:16],str(opc)))
