@@ -56,7 +56,7 @@ class PicturePanel(wx.Panel):
 			nh=w/ar
 		if nh>h:
 			nh=h
-			#nw=h/ar
+			nw=h*ar
 		sw=iw*self.presentZoomLevel
 		sh=ih*self.presentZoomLevel
 		(sx,sy)=self.viewpoint
@@ -71,6 +71,8 @@ class PicturePanel(wx.Panel):
 		presentZoomLevel=1
 		dc.Clear()
 		dc.DrawBitmap(bmp, w/2-nw/2, h/2-nh/2)
+		#change the window title
+		self.frame.SetLabel("AeosPy Viewer"+self.bmp)
 		
 	def setImage(self,bmp):
 		self.bmp=bmp
@@ -187,7 +189,7 @@ class Viewer(wx.Frame):
 		self.Destroy()
 		
 	def onAbout(self, event):
-		dlg=wx.MessageDialog(self,"About AeosPy v1.2","Python application to use mobile device as remote control for browsing through picture album.\nCopyright (C) 2012  Spikey360\nThis program comes with ABSOLUTELY NO WARRANTY.\nThis is free software, and you are welcome to redistribute it",wx.OK)
+		dlg=wx.MessageDialog(self,"About AeosPy v1.2","Python application to use mobile device as remote control for browsing through picture album.\nCopyright (C) 2012  Spikey360\nThis program comes with ABSOLUTELY NO WARRANTY.\nThis is free software, and you are welcome to redistribute it",wx.OK|wx.ICON_INFORMATION)
 		dlg.Center()
 		dlg.ShowModal()
 	def onNext(self,event):
