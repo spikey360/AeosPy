@@ -164,12 +164,12 @@ class Viewer(wx.Frame):
 		dash.Add(fsButton)
 		dash.Add(zoomButton)
 		dash.Add(moozButton)
-		dash.add(aboutButton)
+		dash.Add(aboutButton)
 		dpanel.SetSizer(dash)
 		dpanel.Layout()
 		mainBox=wx.BoxSizer(wx.VERTICAL)
-		mainBox.Add(dpanel)
 		mainBox.Add(self.picPanel)
+		mainBox.Add(dpanel)
 		panel.SetSizer(mainBox)
 		panel.Layout()
 		panel.SetAutoLayout(True)
@@ -272,8 +272,8 @@ class Viewer(wx.Frame):
 		self.piclist={}
 		self.albumSize=0
 		for y in z:
-			y=y.lower()
-			if y.endswith(".jpg") or y.endswith(".gif") or y.endswith(".png"):
+			l=y.lower()
+			if l.endswith(".jpg") or l.endswith(".gif") or l.endswith(".png"):
 				self.piclist[self.albumSize]=x+y
 				self.albumSize=self.albumSize+1
 
