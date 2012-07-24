@@ -1,6 +1,6 @@
 AeosPy
 ======
-##Python application to use mobile device as remote control for browsing through picture album.
+Python application to use mobile device as remote control for browsing through picture album.
 
 ###Requirements
 * [Python](http://www.python.org/getit/)
