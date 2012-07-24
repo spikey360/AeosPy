@@ -157,16 +157,19 @@ class Viewer(wx.Frame):
 		zoomButton.Bind(wx.EVT_BUTTON,self.onZoomed)
 		moozButton=wx.Button(dpanel,label="-")
 		moozButton.Bind(wx.EVT_BUTTON,self.onMoozed)
+		aboutButton=wx.Button(dpanel,label="About")
+		aboutButton.Bind(wx.EVT_BUTTON,self.onAbout)
 		dash.Add(prevButton)
 		dash.Add(nextButton)
 		dash.Add(fsButton)
 		dash.Add(zoomButton)
 		dash.Add(moozButton)
+		dash.add(aboutButton)
 		dpanel.SetSizer(dash)
 		dpanel.Layout()
 		mainBox=wx.BoxSizer(wx.VERTICAL)
-		mainBox.Add(dpanel,proportion=1)
-		mainBox.Add(self.picPanel,2)
+		mainBox.Add(dpanel)
+		mainBox.Add(self.picPanel)
 		panel.SetSizer(mainBox)
 		panel.Layout()
 		panel.SetAutoLayout(True)
@@ -182,6 +185,11 @@ class Viewer(wx.Frame):
 		
 	def onClose(self,event):
 		self.Destroy()
+		
+	def onAbout(self, event):
+		dlg=wx.MessageDialog(self,"About AeosPy v1.2","Python application to use mobile device as remote control for browsing through picture album.\nCopyright (C) 2012  Spikey360\nThis program comes with ABSOLUTELY NO WARRANTY.\nThis is free software, and you are welcome to redistribute it",wx.OK)
+		dlg.Center()
+		dlg.ShowModal()
 	def onNext(self,event):
 		if self.curr<(self.albumSize-1):
 			self.curr+=1
