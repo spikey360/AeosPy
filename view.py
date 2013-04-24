@@ -226,9 +226,11 @@ class Viewer(wx.Frame):
 	def toggleFullScreen(self):
 		if self.isFs==False:
 			self.ShowFullScreen(True,style=wx.FULLSCREEN_ALL)
+			self.picPanel.SetSize(wx.DisplaySize())
 			self.isFs=True
 		else:
 			self.ShowFullScreen(False)
+			self.picPanel.SetSize((890,500))
 			self.isFs=False
 		self.picPanel.Refresh()
 	
