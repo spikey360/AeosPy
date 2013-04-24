@@ -87,7 +87,7 @@ for m in rd.controllable.conlist:
 rd.sendOperationList(rd.oplist.getOplist())
 rd.readProtocolString()
 #also send control list
-rd.sendOperationList(rd.oplist.getConlist(),protocol="c")
+rd.sendOperationList(rd.oplist.getConlist(),protocol="c",sendTitle=True)
 rd.readProtocolString()
 ##SETUP VIEWER#
 

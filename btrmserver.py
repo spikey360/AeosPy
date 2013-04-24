@@ -167,7 +167,7 @@ class RemoteDock:
 	def setControllable(self,ct):
 		self.controllable=ct
 	
-	def sendOperationList(self,oplist,protocol="l"):
+	def sendOperationList(self,oplist,protocol="l",sendTitle=False):
 		msg=""
 		w=0
 		#oplist is a dictionary oplist[opcode]=parameter
@@ -176,7 +176,11 @@ class RemoteDock:
 		#self.server.writeToRemote(protocol)
 		msg=msg+protocol
 		for k in oplist:
-			(title,opcode)=(oplist[k],k)
+			(title,opcode)=("","")
+			if sendTitle:
+				(title,opcode)=(oplist[k],k)
+			else:
+				(title,opcode)=(k,k)
 			msg=msg+";"+title+":"+opcode
 		#self.server.writeToRemote("\0")
 		msg=msg+";\0"
