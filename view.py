@@ -25,6 +25,7 @@ import os
 
 class PicturePanel(wx.Panel):
 	bmp=None
+	drawLabel=True
 	presentZoomLevel=1.00
 	#tuple describing point from where viewport has its origin
 	viewpoint=(0,0)
@@ -71,6 +72,11 @@ class PicturePanel(wx.Panel):
 		presentZoomLevel=1
 		dc.Clear()
 		dc.DrawBitmap(bmp, w/2-nw/2, h/2-nh/2)
+		#draw label
+		dc.SetTextForeground(wx.Colour(255,255,255))
+		if self.drawLabel:
+			tw,th=dc.GetTextExtent(self.bmp)
+			dc.DrawText(self.bmp,(iw/2-tw/2),5)
 		#change the window title
 		self.frame.SetLabel("AeosPy Viewer"+self.bmp)
 		
@@ -176,6 +182,7 @@ class Viewer(wx.Frame):
 		panel.Layout()
 		panel.SetAutoLayout(True)
 		self.picPanel.setImage(self.piclist[self.curr])
+		self.Center()
 		#add all controls to conlist
 		self.conlist[1]=("Fullscreen",self.toggleFullScreen)
 		self.conlist[2]=("Zoom",self.zoom)
@@ -184,6 +191,7 @@ class Viewer(wx.Frame):
 		self.conlist[5]=("-Down",self.goDown)
 		self.conlist[6]=("-Left",self.goLeft)
 		self.conlist[7]=("-Right",self.goRight)
+		self.conlist[8]=("Toggle Label",self.toggleLabel)
 		
 	def onClose(self,event):
 		self.Destroy()
@@ -222,6 +230,8 @@ class Viewer(wx.Frame):
 		self.goLeft()
 	def onGoRight(self,event):
 		self.goRight()
+	def onToggleLabel(self,event):
+		self.toggleLabel()
 	########################################################
 	def toggleFullScreen(self):
 		if self.isFs==False:
@@ -253,6 +263,12 @@ class Viewer(wx.Frame):
 		self.picPanel.Refresh()
 	def goRight(self):
 		self.picPanel.setDirection(direction="r")
+		self.picPanel.Refresh()
+	def toggleLabel(self):
+		if self.picPanel.drawLabel:
+			self.picPanel.drawLabel=False
+		else:
+			self.picPanel.drawLabel=True
 		self.picPanel.Refresh()
 	#########################################################
 	def opControl(self,op):

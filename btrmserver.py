@@ -206,6 +206,8 @@ class RemoteDock:
 		global BTRMDEBUG
 		###########
 		ps=self.server.readFromRemote()
+		if not ps:
+			return;
 		if BTRMDEBUG:
 			print "<"+ps
 		p=ps[:1] #the type of query
